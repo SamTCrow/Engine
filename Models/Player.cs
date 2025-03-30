@@ -1,10 +1,12 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 
+using System.Collections.ObjectModel;
 using System.ComponentModel;
+using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace Engine.Models;
 
-public class Player : INotifyPropertyChanged
+public class Player : ObservableObject
 {
     public string Name { get; private set; }
 
@@ -14,37 +16,50 @@ public class Player : INotifyPropertyChanged
     public Attributes CharacterAttributes { get; } = new();
 
     public int Hitpoints { get; private set; }
+    public ObservableCollection<GameItem> Inventory { get; private set; }
 
     public int ResourcePoints { get; }
     public int Luck { get; }
-    public int ExperiencePoints { get; private set; }
+
+    private int _experiencePoints;
+
+    public int ExperiencePoints
+    {
+        get => _experiencePoints;
+        private set => SetProperty(ref _experiencePoints, value);
+    }
+
     public int Level { get; } = 1;
-    public int Gold { get; private set; }
+
+    private int _gold;
+
+    public int Gold
+    {
+        get => _gold;
+        private set => SetProperty(ref _gold, value);
+    }
 
     public Player(string name)
     {
         Name = name;
         CharacterClass = Job.Fighter;
         Hitpoints = 10;
+        Inventory = [];
     }
 
-    public event PropertyChangedEventHandler? PropertyChanged;
-
-    protected virtual void OnPropertyChanged(string propertyName)
+    public void AddItem(GameItem item)
     {
-        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        Inventory.Add(item);
     }
 
     public void AddGold(int amount)
     {
         Gold += amount;
-        OnPropertyChanged(nameof(Gold));
     }
 
     public void AddXp(int amount)
     {
         ExperiencePoints += amount;
-        OnPropertyChanged(nameof(ExperiencePoints));
     }
 }
 

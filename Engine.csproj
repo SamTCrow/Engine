@@ -7,7 +7,9 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Images\Locations\PlayerHome.jpeg" />
     <None Remove="Images\Locations\PlayerHome.png" />
+    <None Remove="Images\Locations\TheFarm.jpeg" />
   </ItemGroup>
 
   <ItemGroup>
@@ -15,9 +17,11 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Resource Include="Images\Locations\PlayerHome.jpeg" />
     <Resource Include="Images\Locations\PlayerHome.png">
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
+    <Resource Include="Images\Locations\TheFarm.jpeg" />
   </ItemGroup>
 
 </Project>
