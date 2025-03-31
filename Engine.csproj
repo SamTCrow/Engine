@@ -17,11 +17,19 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Resource Include="Images\Locations\PlayerHome.jpeg" />
-    <Resource Include="Images\Locations\PlayerHome.png">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    <Resource Include="Images\Locations\PlayerHome.jpeg">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Images\Locations\TheFarm.jpeg" />
+    <Resource Include="Images\Locations\PlayerHome.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Images\Locations\TheFarm.jpeg">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Images\Monsters\" />
   </ItemGroup>
 
 </Project>

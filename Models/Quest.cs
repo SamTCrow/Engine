@@ -2,32 +2,21 @@
 
 namespace Engine.Models;
 
-internal class Quest
+public class Quest(
+    int iD,
+    string name,
+    string description,
+    List<ItemQuantity> itemsToComplete,
+    int rewardXP,
+    int rewardGold,
+    List<ItemQuantity> rewardItems
+)
 {
-    public Quest(
-        int iD,
-        string name,
-        string description,
-        List<ItemQuantity> itemsToComplete,
-        int rewardXP,
-        int rewardGold,
-        List<ItemQuantity> rewardItems
-    )
-    {
-        ID = iD;
-        Name = name;
-        Description = description;
-        ItemsToComplete = itemsToComplete;
-        RewardXP = rewardXP;
-        RewardGold = rewardGold;
-        RewardItems = rewardItems;
-    }
-
-    public int ID { get; }
-    public string Name { get; }
-    public string Description { get; }
-    public List<ItemQuantity> ItemsToComplete { get; }
-    public int RewardXP { get; }
-    public int RewardGold { get; }
-    public List<ItemQuantity> RewardItems { get; }
+    public int ID { get; } = iD;
+    public string Name { get; } = name;
+    public string Description { get; } = description;
+    public List<ItemQuantity> ItemsToComplete { get; } = itemsToComplete;
+    public int RewardXP { get; } = rewardXP;
+    public int RewardGold { get; } = rewardGold;
+    public List<ItemQuantity> RewardItems { get; } = rewardItems;
 }

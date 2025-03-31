@@ -2,17 +2,11 @@
 
 namespace Engine.Models;
 
-public class Weapon : GameItem
+public class Weapon(int itemTypeId, string name, int price, int minDamage, int maxDamage)
+    : GameItem(itemTypeId, name, price)
 {
-    public int MinimumDamage { get; }
-    public int MaximumDamage { get; }
+    public int MinimumDamage { get; } = minDamage;
+    public int MaximumDamage { get; } = maxDamage;
 
-    public Weapon(int itemTypeId, string name, int price, int minDamage, int maxDamage)
-        : base(itemTypeId, name, price)
-    {
-        MinimumDamage = minDamage;
-        MaximumDamage = maxDamage;
-    }
-
-    public new Weapon Clone() => new Weapon(ItemID, Name, Price, MinimumDamage, MaximumDamage);
+    public new Weapon Clone() => new(ItemID, Name, Price, MinimumDamage, MaximumDamage);
 }

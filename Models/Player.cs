@@ -14,9 +14,17 @@ public class Player : ObservableObject
 
     public Race CharacterRace { get; }
     public Attributes CharacterAttributes { get; } = new();
+    private int _hitpoints;
 
-    public int Hitpoints { get; private set; }
-    public ObservableCollection<GameItem> Inventory { get; private set; }
+    public int Hitpoints
+    {
+        get => _hitpoints;
+        private set { SetProperty(ref _hitpoints, value); }
+    }
+
+    public ObservableCollection<GameItem> Inventory { get; private set; } = [];
+    public ObservableCollection<QuestStatus> Quests { get; private set; } = [];
+    public List<GameItem> Weapons => Inventory.Where(i => i is Weapon).ToList();
 
     public int ResourcePoints { get; }
     public int Luck { get; }
@@ -44,12 +52,17 @@ public class Player : ObservableObject
         Name = name;
         CharacterClass = Job.Fighter;
         Hitpoints = 10;
-        Inventory = [];
     }
 
     public void AddItem(GameItem item)
     {
         Inventory.Add(item);
+        OnPropertyChanged(nameof(Weapons));
+    }
+
+    public void AddQuest(QuestStatus quest)
+    {
+        Quests.Add(quest);
     }
 
     public void AddGold(int amount)
@@ -60,6 +73,16 @@ public class Player : ObservableObject
     public void AddXp(int amount)
     {
         ExperiencePoints += amount;
+    }
+
+    public void TakeDamage(int amount)
+    {
+        Hitpoints -= amount;
+    }
+
+    public void SetHp(int amount)
+    {
+        Hitpoints = amount;
     }
 }
 
