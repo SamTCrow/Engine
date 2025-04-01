@@ -6,9 +6,8 @@ public class World
 {
     private List<Location> _locations = [];
 
-    internal void AddLocation(int x, int y, Location location)
+    internal void AddLocation(Location location)
     {
-        location.PlaceLocation(x, y);
         _locations.Add(location);
     }
 

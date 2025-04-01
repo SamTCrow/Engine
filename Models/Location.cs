@@ -6,24 +6,20 @@ namespace Engine.Models;
 
 public class Location
 {
-    public int XCoordinate { get; private set; }
-    public int YCoordinate { get; private set; }
+    public int XCoordinate { get; }
+    public int YCoordinate { get; }
     public string Name { get; }
     public string Description { get; }
     public string ImageName { get; }
-    public List<Quest> QuestsAvailableHere { get; private set; } = [];
-    public List<MonsterEncounter> MonstersHere { get; private set; } = [];
+    public List<Quest> QuestsAvailableHere { get; } = [];
+    public List<MonsterEncounter> MonstersHere { get; } = [];
     public Trader? TraderHere { get; private set; }
 
-    public Location(string name, string description, string imageName)
+    public Location(string name, string description, string imageName, int x, int y)
     {
         Name = name;
         Description = description;
         ImageName = $"/Engine;component/Images/Locations/{imageName}";
-    }
-
-    public void PlaceLocation(int x, int y)
-    {
         XCoordinate = x;
         YCoordinate = y;
     }

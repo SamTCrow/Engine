@@ -1,37 +1,38 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 
 using System.Collections.ObjectModel;
-using System.ComponentModel;
-using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace Engine.Models;
 
 public class Player : LivingEntity
 {
+    private int _classHpModifier = 10;
     private int _experiencePoints;
     public Job CharacterClass { get; }
 
     public Race CharacterRace { get; }
     public Attributes CharacterAttributes { get; } = new();
 
-    public ObservableCollection<QuestStatus> Quests { get; } = [];
-
     public int ResourcePoints { get; }
 
     public int ExperiencePoints
     {
         get => _experiencePoints;
-        private set => SetProperty(ref _experiencePoints, value);
+        private set
+        {
+            SetProperty(ref _experiencePoints, value);
+            SetLevelAndHP();
+        }
     }
 
-    public int Level { get; } = 1;
+    public ObservableCollection<QuestStatus> Quests { get; } = [];
 
-    public Player(string name)
-        : base(name)
+    public event EventHandler? OnLeveledUp;
+
+    public Player(string name, int maximumHitPoints, int gold)
+        : base(name, maximumHitPoints, gold)
     {
         CharacterClass = Job.Fighter;
-        MaximumHitPoints = 10;
-        CurrentHitPoints = 10;
     }
 
     public void AddQuest(QuestStatus quest)
@@ -39,24 +40,9 @@ public class Player : LivingEntity
         Quests.Add(quest);
     }
 
-    public void AddGold(int amount)
-    {
-        Gold += amount;
-    }
-
-    public void RemoveGold(int amount)
-    {
-        Gold -= amount;
-    }
-
     public void AddXp(int amount)
     {
         ExperiencePoints += amount;
-    }
-
-    public void SetHp(int amount)
-    {
-        CurrentHitPoints = amount;
     }
 
     public bool HasAllTheseItems(List<ItemQuantity> items)
@@ -67,6 +53,17 @@ public class Player : LivingEntity
                 return false;
         }
         return true;
+    }
+
+    private void SetLevelAndHP()
+    {
+        int originalLevel = Level;
+        Level = (ExperiencePoints / 100) + 1;
+        if (Level != originalLevel)
+        {
+            MaximumHitPoints = Level * _classHpModifier;
+            OnLeveledUp?.Invoke(this, System.EventArgs.Empty);
+        }
     }
 }
 
