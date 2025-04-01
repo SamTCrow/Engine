@@ -1,28 +1,16 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 
-using System.Collections.ObjectModel;
-using CommunityToolkit.Mvvm.ComponentModel;
+using Engine.Factories;
 
 namespace Engine.Models;
 
-public class Monster : ObservableObject
+public class Monster : LivingEntity
 {
-    private int _hitPoints;
-
-    public int HitPoints
-    {
-        get => _hitPoints;
-        private set { SetProperty(ref _hitPoints, value); }
-    }
-
-    public string Name { get; }
     public string ImageName { get; }
-    public int MaximumHitPoints { get; }
-    public int MinimumDamage { get; private set; }
-    public int MaximumDamage { get; private set; }
+
+    public int MinimumDamage { get; }
+    public int MaximumDamage { get; }
     public int RewardXp { get; }
-    public int RewardGold { get; }
-    public ObservableCollection<ItemQuantity> Inventory { get; private set; }
 
     public Monster(
         string name,
@@ -34,14 +22,14 @@ public class Monster : ObservableObject
         int rewardXp,
         int rewardGold
     )
+        : base(name)
     {
-        HitPoints = hitPoints;
+        CurrentHitPoints = hitPoints;
         Name = name;
         ImageName = $"/Engine;component/Images/Monsters/{imageName}";
         MaximumHitPoints = maximumHitPoints;
         RewardXp = rewardXp;
-        RewardGold = rewardGold;
-        Inventory = [];
+        Gold = rewardGold;
         MinimumDamage = minimumDamage;
         MaximumDamage = maximumDamage;
     }
@@ -50,12 +38,7 @@ public class Monster : ObservableObject
     {
         if (new Random().Next(1, 101) <= percentage)
         {
-            Inventory.Add(new ItemQuantity(itemId, 1));
+            Inventory.Add(ItemFactory.CreateGameItem(itemId));
         }
-    }
-
-    public void TakeDamage(int amount)
-    {
-        HitPoints -= amount;
     }
 }

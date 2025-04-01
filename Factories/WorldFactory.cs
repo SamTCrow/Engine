@@ -27,12 +27,14 @@ internal static class WorldFactory
             )
         );
         newWorld.LocationAt(-2, -1)?.AddMonster(2, 100);
+        newWorld.LocationAt(-1, -1)?.AddTrader(TraderFactory.GetTraderByName("Farmer Ted")!);
 
         newWorld.AddLocation(
             -1,
             0,
             new Location("Trading Shop", "The shop of Susan, the trader.", "Trader.png")
         );
+        newWorld.LocationAt(-1, 0)?.AddTrader(TraderFactory.GetTraderByName("Susan")!);
         newWorld.AddLocation(
             0,
             0,
@@ -67,6 +69,7 @@ internal static class WorldFactory
             )
         );
         newWorld.LocationAt(0, 1)?.AddQuest(QuestFactory.GetQuestByID(1));
+        newWorld.LocationAt(0, 1)?.AddTrader(TraderFactory.GetTraderByName("Pete the Herbalist")!);
         newWorld.AddLocation(
             0,
             2,

@@ -6,30 +6,17 @@ using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace Engine.Models;
 
-public class Player : ObservableObject
+public class Player : LivingEntity
 {
-    public string Name { get; private set; }
-
-    public Job CharacterClass { get; private set; }
+    private int _experiencePoints;
+    public Job CharacterClass { get; }
 
     public Race CharacterRace { get; }
     public Attributes CharacterAttributes { get; } = new();
-    private int _hitpoints;
 
-    public int Hitpoints
-    {
-        get => _hitpoints;
-        private set { SetProperty(ref _hitpoints, value); }
-    }
-
-    public ObservableCollection<GameItem> Inventory { get; private set; } = [];
-    public ObservableCollection<QuestStatus> Quests { get; private set; } = [];
-    public List<GameItem> Weapons => Inventory.Where(i => i is Weapon).ToList();
+    public ObservableCollection<QuestStatus> Quests { get; } = [];
 
     public int ResourcePoints { get; }
-    public int Luck { get; }
-
-    private int _experiencePoints;
 
     public int ExperiencePoints
     {
@@ -39,25 +26,12 @@ public class Player : ObservableObject
 
     public int Level { get; } = 1;
 
-    private int _gold;
-
-    public int Gold
-    {
-        get => _gold;
-        private set => SetProperty(ref _gold, value);
-    }
-
     public Player(string name)
+        : base(name)
     {
-        Name = name;
         CharacterClass = Job.Fighter;
-        Hitpoints = 10;
-    }
-
-    public void AddItem(GameItem item)
-    {
-        Inventory.Add(item);
-        OnPropertyChanged(nameof(Weapons));
+        MaximumHitPoints = 10;
+        CurrentHitPoints = 10;
     }
 
     public void AddQuest(QuestStatus quest)
@@ -70,19 +44,29 @@ public class Player : ObservableObject
         Gold += amount;
     }
 
+    public void RemoveGold(int amount)
+    {
+        Gold -= amount;
+    }
+
     public void AddXp(int amount)
     {
         ExperiencePoints += amount;
     }
 
-    public void TakeDamage(int amount)
-    {
-        Hitpoints -= amount;
-    }
-
     public void SetHp(int amount)
     {
-        Hitpoints = amount;
+        CurrentHitPoints = amount;
+    }
+
+    public bool HasAllTheseItems(List<ItemQuantity> items)
+    {
+        foreach (var item in items)
+        {
+            if (Inventory.Count(i => i.ItemID == item.ItemId) < item.Quantity)
+                return false;
+        }
+        return true;
     }
 }
 

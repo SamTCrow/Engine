@@ -13,6 +13,7 @@ public class Location
     public string ImageName { get; }
     public List<Quest> QuestsAvailableHere { get; private set; } = [];
     public List<MonsterEncounter> MonstersHere { get; private set; } = [];
+    public Trader? TraderHere { get; private set; }
 
     public Location(string name, string description, string imageName)
     {
@@ -31,6 +32,8 @@ public class Location
     {
         QuestsAvailableHere.Add(quest);
     }
+
+    public void AddTrader(Trader trader) => TraderHere = trader;
 
     public void AddMonster(int monsterID, int chance)
     {

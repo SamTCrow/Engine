@@ -25,8 +25,10 @@ public class GameSession : ObservableObject
             OnPropertyChanged(nameof(ExitWest));
             OnPropertyChanged(nameof(ExitEast));
 
+            CompleteQuestAtLocation();
             GivePlayerQuestAtLocation();
             GetMonsterAtLocation();
+            CurrentTrader = CurrentLocation.TraderHere;
         }
     }
 
@@ -46,6 +48,18 @@ public class GameSession : ObservableObject
                 RaiseMessage("");
                 RaiseMessage($"You see a {CurrentMonster.Name} here!");
             }
+        }
+    }
+
+    private Trader? _currentTrader;
+
+    public Trader? CurrentTrader
+    {
+        get => _currentTrader;
+        private set
+        {
+            SetProperty(ref _currentTrader, value);
+            OnPropertyChanged(nameof(HasTrader));
         }
     }
 
@@ -69,6 +83,8 @@ public class GameSession : ObservableObject
         CurrentWorld.LocationAt(CurrentLocation.XCoordinate + 1, CurrentLocation.YCoordinate)
         != null;
 
+    public bool HasTrader => CurrentTrader != null;
+
     public GameSession()
     {
         var name = "Sam";
@@ -84,7 +100,7 @@ public class GameSession : ObservableObject
 
     public void Move(Direction direction)
     {
-        Location? newLocation = direction switch
+        var newLocation = direction switch
         {
             Direction.North => CurrentWorld.LocationAt(
                 CurrentLocation.XCoordinate,
@@ -130,20 +146,19 @@ public class GameSession : ObservableObject
             CurrentMonster?.TakeDamage(damageToMonster);
             RaiseMessage($"You hit the {CurrentMonster?.Name} for {damageToMonster} points");
         }
-        if (CurrentMonster?.HitPoints <= 0)
+        if (CurrentMonster?.CurrentHitPoints <= 0)
         {
             RaiseMessage("");
             RaiseMessage($"You defeated the {CurrentMonster.Name}!");
 
             CurrentPlayer.AddXp(CurrentMonster.RewardXp);
             RaiseMessage($"You receive {CurrentMonster.RewardXp} experience points.");
-            CurrentPlayer.AddGold(CurrentMonster.RewardGold);
-            RaiseMessage($"You receive {CurrentMonster.RewardGold} gold.");
-            foreach (var itemQuantity in CurrentMonster.Inventory)
+            CurrentPlayer.AddGold(CurrentMonster.Gold);
+            RaiseMessage($"You receive {CurrentMonster.Gold} gold.");
+            foreach (var gameItem in CurrentMonster.Inventory)
             {
-                var item = ItemFactory.CreateGameItem(itemQuantity.ItemId);
-                CurrentPlayer.AddItem(item);
-                RaiseMessage($"You receive {itemQuantity.Quantity} {item.Name}");
+                CurrentPlayer.AddItem(gameItem);
+                RaiseMessage($"You receive one {gameItem.Name}");
             }
             GetMonsterAtLocation();
         }
@@ -162,7 +177,7 @@ public class GameSession : ObservableObject
                 CurrentPlayer.TakeDamage(damageToPlayer);
                 RaiseMessage($"The {CurrentMonster.Name} hit you for {damageToPlayer} points.");
             }
-            if (CurrentPlayer.Hitpoints == 0)
+            if (CurrentPlayer.CurrentHitPoints <= 0)
             {
                 RaiseMessage("");
                 RaiseMessage($"The {CurrentMonster.Name} killed you!");
@@ -177,7 +192,70 @@ public class GameSession : ObservableObject
         foreach (var quest in CurrentLocation.QuestsAvailableHere)
         {
             if (!CurrentPlayer.Quests.Any(q => q.PlayerQuest.ID == quest.ID))
+            {
                 CurrentPlayer.AddQuest(new QuestStatus(quest));
+                RaiseMessage("");
+                RaiseMessage($"You receive the '{quest.Name}' quest");
+                RaiseMessage(quest.Description);
+
+                RaiseMessage("Return with:");
+                foreach (var itemQuantity in quest.ItemsToComplete)
+                {
+                    RaiseMessage(
+                        $"   {itemQuantity.Quantity} {ItemFactory.CreateGameItem(itemQuantity.ItemId).Name}"
+                    );
+                }
+                RaiseMessage("And you will receive:");
+                RaiseMessage($"   {quest.RewardXP} experience points");
+                RaiseMessage($"   {quest.RewardGold} gold");
+                foreach (var itemQuantity in quest.RewardItems)
+                {
+                    RaiseMessage(
+                        $"   {itemQuantity.Quantity} {ItemFactory.CreateGameItem(itemQuantity.ItemId).Name}"
+                    );
+                }
+            }
+        }
+    }
+
+    private void CompleteQuestAtLocation()
+    {
+        foreach (var quest in CurrentLocation.QuestsAvailableHere)
+        {
+            var questToComplete = CurrentPlayer.Quests.FirstOrDefault(q =>
+                q.PlayerQuest.ID == quest.ID && !q.IsComplete
+            );
+
+            if (questToComplete != null)
+            {
+                if (CurrentPlayer.HasAllTheseItems(quest.ItemsToComplete))
+                {
+                    foreach (var itemQuantity in quest.ItemsToComplete)
+                    {
+                        for (var i = 0; i < itemQuantity.Quantity; i++)
+                        {
+                            CurrentPlayer.RemoveItem(
+                                CurrentPlayer.Inventory.First(item =>
+                                    item.ItemID == itemQuantity.ItemId
+                                )
+                            );
+                        }
+                    }
+                    RaiseMessage("");
+                    RaiseMessage($"You completed the '{quest.Name}' quest");
+                    CurrentPlayer.AddXp(quest.RewardXP);
+                    RaiseMessage($"You receive {quest.RewardXP} experiene points");
+                    CurrentPlayer.AddGold(quest.RewardGold);
+                    RaiseMessage($"You receive {quest.RewardGold} gold");
+                    foreach (var itemQuantity in quest.RewardItems)
+                    {
+                        var rewardItem = ItemFactory.CreateGameItem(itemQuantity.ItemId);
+                        CurrentPlayer.AddItem(rewardItem);
+                        RaiseMessage($"You receive {rewardItem.Name}");
+                    }
+                    questToComplete.Complete();
+                }
+            }
         }
     }
 
