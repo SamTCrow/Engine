@@ -26,6 +26,7 @@ public class Player : LivingEntity
     }
 
     public ObservableCollection<QuestStatus> Quests { get; } = [];
+    public ObservableCollection<Recipe> Recipes { get; } = [];
 
     public event EventHandler? OnLeveledUp;
 
@@ -43,6 +44,14 @@ public class Player : LivingEntity
     public void AddXp(int amount)
     {
         ExperiencePoints += amount;
+    }
+
+    public void LearnRecipe(Recipe recipe)
+    {
+        if (!Recipes.Any(x => x.ID == recipe.ID))
+        {
+            Recipes.Add(recipe);
+        }
     }
 
     public bool HasAllTheseItems(List<ItemQuantity> items)

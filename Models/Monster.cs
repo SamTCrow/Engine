@@ -7,17 +7,12 @@ namespace Engine.Models;
 public class Monster : LivingEntity
 {
     public string ImageName { get; }
-
-    public int MinimumDamage { get; }
-    public int MaximumDamage { get; }
     public int RewardXp { get; }
 
     public Monster(
         string name,
         string imageName,
         int maximumHitPoints,
-        int minimumDamage,
-        int maximumDamage,
         int rewardXp,
         int rewardGold
     )
@@ -25,8 +20,6 @@ public class Monster : LivingEntity
     {
         ImageName = $"/Engine;component/Images/Monsters/{imageName}";
         RewardXp = rewardXp;
-        MinimumDamage = minimumDamage;
-        MaximumDamage = maximumDamage;
     }
 
     public void AddLoot(int itemId, int percentage)

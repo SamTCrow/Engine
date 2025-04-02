@@ -1,5 +1,4 @@
-﻿using System.ComponentModel;
-using CommunityToolkit.Mvvm.ComponentModel;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 using Engine.EventArgs;
 using Engine.Factories;
 using Engine.Models;
@@ -20,6 +19,7 @@ public class GameSession : ObservableObject
         {
             if (_currentPlayer != null)
             {
+                _currentPlayer.OnActionPerformed -= OnCurrentPlayerActionPerformed;
                 _currentPlayer.OnKilled -= OnCurrentPlayerKilled;
                 _currentPlayer.OnLeveledUp -= OnCurrentPlayerLevelUp;
             }
@@ -27,6 +27,7 @@ public class GameSession : ObservableObject
             SetProperty(ref _currentPlayer, value);
             if (_currentPlayer != null)
             {
+                _currentPlayer.OnActionPerformed += OnCurrentPlayerActionPerformed;
                 _currentPlayer.OnKilled += OnCurrentPlayerKilled;
                 _currentPlayer.OnLeveledUp += OnCurrentPlayerLevelUp;
             }
@@ -53,20 +54,22 @@ public class GameSession : ObservableObject
         }
     }
 
-    public GameItem? CurrentWeapon { get; set; }
-
     public Monster? CurrentMonster
     {
         get => _currentMonster;
         private set
         {
             if (_currentMonster != null)
+            {
+                _currentMonster.OnActionPerformed -= OnCurrentMonsterActionPerformed;
                 _currentMonster.OnKilled -= OnCurrentMonsterKilled;
+            }
 
             SetProperty(ref _currentMonster, value);
 
             if (_currentMonster != null)
             {
+                _currentMonster.OnActionPerformed += OnCurrentMonsterActionPerformed;
                 _currentMonster.OnKilled += OnCurrentMonsterKilled;
                 RaiseMessage("");
                 RaiseMessage($"You see a {_currentMonster.Name} here!");
@@ -114,6 +117,8 @@ public class GameSession : ObservableObject
         var name = "Sam";
         CurrentPlayer = new Player(name, 10, 100000);
         _currentPlayer = CurrentPlayer;
+        CurrentPlayer.AddItem(ItemFactory.CreateGameItem(2001));
+        CurrentPlayer.LearnRecipe(RecipeFactory.RecipeByID(1));
         CurrentWorld = WorldFactory.CreateWorld();
         _currentLocation = CurrentWorld.LocationAt(0, 0)!;
         if (CurrentPlayer.Weapons.Count == 0)
@@ -157,38 +162,20 @@ public class GameSession : ObservableObject
             RaiseMessage("There is no monster here");
             return;
         }
-        if (CurrentWeapon == null)
+        if (CurrentPlayer.CurrentWeapon == null)
         {
             RaiseMessage("You must select a weapon to attack.");
             return;
         }
-        var damageToMonster = new Random().Next(
-            CurrentWeapon.MinimumDamage,
-            CurrentWeapon.MaximumDamage + 1
-        );
-        if (damageToMonster == 0)
-        {
-            RaiseMessage($"You missed the {CurrentMonster.Name}");
-        }
-        else
-        {
-            RaiseMessage($"You hit the {CurrentMonster.Name} for {damageToMonster} points");
-            CurrentMonster.TakeDamage(damageToMonster);
-        }
+        CurrentPlayer.UseCurrentWeaponOn(CurrentMonster);
 
-        var damageToPlayer = new Random().Next(
-            CurrentMonster!.MinimumDamage,
-            CurrentMonster.MaximumDamage + 1
-        );
-        if (damageToPlayer == 0)
-        {
-            RaiseMessage("The monster attacks, but it misses you.");
-        }
-        else
-        {
-            RaiseMessage($"The {CurrentMonster.Name} hit you for {damageToPlayer} points.");
-            CurrentPlayer.TakeDamage(damageToPlayer);
-        }
+        if (!CurrentMonster.IsDead)
+            CurrentMonster.UseCurrentWeaponOn(CurrentPlayer);
+    }
+
+    public void UseCurrentConsumable()
+    {
+        CurrentPlayer.UseCurrentConsumable();
     }
 
     private void GivePlayerQuestAtLocation()
@@ -302,6 +289,16 @@ public class GameSession : ObservableObject
             CurrentPlayer.AddItem(gameItem);
         }
         GetMonsterAtLocation();
+    }
+
+    private void OnCurrentMonsterActionPerformed(object? sender, string result)
+    {
+        RaiseMessage(result);
+    }
+
+    private void OnCurrentPlayerActionPerformed(object? sender, string result)
+    {
+        RaiseMessage(result);
     }
 }
 

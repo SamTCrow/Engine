@@ -13,6 +13,8 @@ public abstract class LivingEntity(string name, int maximumHitPoints, int gold, 
     private int _maximumHitPoints = maximumHitPoints;
     private int _gold = gold;
     private int _level = level;
+    private GameItem? _currentWeapon;
+    private GameItem? _currentConsumable;
 
     public string Name
     {
@@ -44,13 +46,68 @@ public abstract class LivingEntity(string name, int maximumHitPoints, int gold, 
         protected set => SetProperty(ref _level, value);
     }
 
+    public GameItem? CurrentWeapon
+    {
+        get => _currentWeapon;
+        set
+        {
+            if (_currentWeapon != null)
+            {
+                _currentWeapon.Action!.OnActionPerformed -= RaiseActionPerformedEvent;
+            }
+            SetProperty(ref _currentWeapon, value);
+            if (_currentWeapon != null)
+            {
+                _currentWeapon.Action!.OnActionPerformed += RaiseActionPerformedEvent;
+            }
+        }
+    }
+
+    public GameItem? CurrentConsumable
+    {
+        get => _currentConsumable;
+        set
+        {
+            if (_currentConsumable != null)
+            {
+                _currentConsumable.Action!.OnActionPerformed -= RaiseActionPerformedEvent;
+            }
+            SetProperty(ref _currentConsumable, value);
+            if (_currentConsumable != null)
+            {
+                _currentConsumable.Action!.OnActionPerformed += RaiseActionPerformedEvent;
+            }
+        }
+    }
+
     public bool IsDead => CurrentHitPoints <= 0;
 
     public ObservableCollection<GameItem> Inventory { get; } = [];
     public ObservableCollection<GroupedInventoryItem> GroupedInventory { get; } = [];
     public List<GameItem> Weapons => [.. Inventory.Where(x => x.Category == ItemCategory.Weapon)];
 
+    public List<GameItem> Consumables =>
+        [.. Inventory.Where(x => x.Category == ItemCategory.Consumable)];
+
+    public bool HasConsumable => Consumables.Count > 0;
+
+    public event EventHandler<string>? OnActionPerformed;
+
     public event EventHandler? OnKilled;
+
+    public void UseCurrentWeaponOn(LivingEntity target)
+    {
+        CurrentWeapon?.PerformAction(this, target);
+    }
+
+    public void UseCurrentConsumable()
+    {
+        if (CurrentConsumable != null)
+        {
+            CurrentConsumable.PerformAction(this, this);
+            RemoveItem(CurrentConsumable);
+        }
+    }
 
     public void AddItem(GameItem item)
     {
@@ -68,6 +125,8 @@ public abstract class LivingEntity(string name, int maximumHitPoints, int gold, 
             GroupedInventory.First(x => x.Item.ItemID == item.ItemID).Quantity++;
         }
         OnPropertyChanged(nameof(Weapons));
+        OnPropertyChanged(nameof(Consumables));
+        OnPropertyChanged(nameof(HasConsumable));
     }
 
     public void RemoveItem(GameItem item)
@@ -89,6 +148,8 @@ public abstract class LivingEntity(string name, int maximumHitPoints, int gold, 
             }
         }
         OnPropertyChanged(nameof(Weapons));
+        OnPropertyChanged(nameof(Consumables));
+        OnPropertyChanged(nameof(HasConsumable));
     }
 
     public void TakeDamage(int amount)
@@ -132,5 +193,10 @@ public abstract class LivingEntity(string name, int maximumHitPoints, int gold, 
     private void RaiseOnKilledEvent()
     {
         OnKilled?.Invoke(this, System.EventArgs.Empty);
+    }
+
+    private void RaiseActionPerformedEvent(object? sender, string result)
+    {
+        OnActionPerformed?.Invoke(this, result);
     }
 }
