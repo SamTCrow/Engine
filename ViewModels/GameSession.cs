@@ -53,7 +53,7 @@ public class GameSession : ObservableObject
         }
     }
 
-    public Weapon? CurrentWeapon { get; set; }
+    public GameItem? CurrentWeapon { get; set; }
 
     public Monster? CurrentMonster
     {
@@ -281,7 +281,7 @@ public class GameSession : ObservableObject
     private void OnCurrentPlayerKilled(object? sender, System.EventArgs e)
     {
         RaiseMessage("");
-        RaiseMessage("You Die!");
+        RaiseMessage("You have been killed!");
 
         CurrentLocation = CurrentWorld.LocationAt(0, -1)!;
         CurrentPlayer.CompletelyHeal();

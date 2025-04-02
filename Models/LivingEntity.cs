@@ -48,7 +48,7 @@ public abstract class LivingEntity(string name, int maximumHitPoints, int gold, 
 
     public ObservableCollection<GameItem> Inventory { get; } = [];
     public ObservableCollection<GroupedInventoryItem> GroupedInventory { get; } = [];
-    public List<GameItem> Weapons => [.. Inventory.Where(x => x is Weapon)];
+    public List<GameItem> Weapons => [.. Inventory.Where(x => x.Category == ItemCategory.Weapon)];
 
     public event EventHandler? OnKilled;
 
