@@ -14,7 +14,7 @@ public static class RecipeFactory
         granolaBar.AddIngredient(3001, 1);
         granolaBar.AddIngredient(3002, 1);
         granolaBar.AddIngredient(3003, 1);
-        granolaBar.AddIngredient(2001, 1);
+        granolaBar.AddOutputItem(2001, 1);
 
         s_recipes.Add(granolaBar);
     }

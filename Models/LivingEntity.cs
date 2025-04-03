@@ -152,6 +152,17 @@ public abstract class LivingEntity(string name, int maximumHitPoints, int gold, 
         OnPropertyChanged(nameof(HasConsumable));
     }
 
+    public void RemoveItems(List<ItemQuantity> itemQuantities)
+    {
+        foreach (var itemQuantity in itemQuantities)
+        {
+            for (int i = 0; i < itemQuantity.Quantity; i++)
+            {
+                RemoveItem(Inventory.First(x => x.ItemID == itemQuantity.ItemId));
+            }
+        }
+    }
+
     public void TakeDamage(int amount)
     {
         CurrentHitPoints -= amount;
@@ -188,6 +199,18 @@ public abstract class LivingEntity(string name, int maximumHitPoints, int gold, 
             throw new ArgumentOutOfRangeException($"{Name} don't have enough gold.");
         }
         Gold -= amount;
+    }
+
+    public bool HasAllTheseItems(List<ItemQuantity> items)
+    {
+        foreach (var item in items)
+        {
+            if (Inventory.Count(x => x.ItemID == item.ItemId) < item.Quantity)
+            {
+                return false;
+            }
+        }
+        return true;
     }
 
     private void RaiseOnKilledEvent()

@@ -69,4 +69,9 @@ public static class ItemFactory
         item.Action = new Heal(item, amount);
         s_standardGameItem.Add(item);
     }
+
+    public static string ItemName(int itemID)
+    {
+        return s_standardGameItem.FirstOrDefault(x => x.ItemID == itemID)?.Name ?? "";
+    }
 }

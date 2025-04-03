@@ -9,13 +9,13 @@ public class GameSession : ObservableObject
 {
     public event EventHandler<GameMessagesEventArgs>? OnMessageRaised;
 
-    private Player _currentPlayer;
+    private Player? _currentPlayer;
     private Monster? _currentMonster;
 
     public Player CurrentPlayer
     {
-        get => _currentPlayer;
-        set
+        get => _currentPlayer!;
+        private set
         {
             if (_currentPlayer != null)
             {
@@ -25,6 +25,7 @@ public class GameSession : ObservableObject
             }
 
             SetProperty(ref _currentPlayer, value);
+
             if (_currentPlayer != null)
             {
                 _currentPlayer.OnActionPerformed += OnCurrentPlayerActionPerformed;
@@ -90,7 +91,7 @@ public class GameSession : ObservableObject
         }
     }
 
-    public World CurrentWorld { get; }
+    private World CurrentWorld { get; }
 
     public bool HasMonster => CurrentMonster != null;
 
@@ -116,11 +117,15 @@ public class GameSession : ObservableObject
     {
         var name = "Sam";
         CurrentPlayer = new Player(name, 10, 100000);
-        _currentPlayer = CurrentPlayer;
         CurrentPlayer.AddItem(ItemFactory.CreateGameItem(2001));
+        CurrentPlayer.AddItem(ItemFactory.CreateGameItem(3001));
+        CurrentPlayer.AddItem(ItemFactory.CreateGameItem(3002));
+        CurrentPlayer.AddItem(ItemFactory.CreateGameItem(3003));
         CurrentPlayer.LearnRecipe(RecipeFactory.RecipeByID(1));
+
         CurrentWorld = WorldFactory.CreateWorld();
         _currentLocation = CurrentWorld.LocationAt(0, 0)!;
+
         if (CurrentPlayer.Weapons.Count == 0)
         {
             CurrentPlayer.AddItem(ItemFactory.CreateGameItem(1001));
@@ -167,6 +172,7 @@ public class GameSession : ObservableObject
             RaiseMessage("You must select a weapon to attack.");
             return;
         }
+
         CurrentPlayer.UseCurrentWeaponOn(CurrentMonster);
 
         if (!CurrentMonster.IsDead)
@@ -175,36 +181,63 @@ public class GameSession : ObservableObject
 
     public void UseCurrentConsumable()
     {
-        CurrentPlayer.UseCurrentConsumable();
+        if (CurrentPlayer.CurrentConsumable != null)
+            CurrentPlayer.UseCurrentConsumable();
+    }
+
+    public void CraftItem(Recipe recipe)
+    {
+        if (CurrentPlayer.HasAllTheseItems(recipe.Ingredients))
+        {
+            CurrentPlayer.RemoveItems(recipe.Ingredients);
+            foreach (var item in recipe.OutputItems)
+            {
+                for (int i = 0; i < item.Quantity; i++)
+                {
+                    var outputItem = ItemFactory.CreateGameItem(item.ItemId);
+                    RaiseMessage($"You craft 1 {outputItem.Name}");
+                    CurrentPlayer.AddItem(outputItem);
+                }
+            }
+        }
+        else
+        {
+            RaiseMessage("You do not have the required ingredients:");
+            foreach (var item in recipe.Ingredients)
+            {
+                RaiseMessage($" {item.Quantity} {ItemFactory.ItemName(item.ItemId)}");
+            }
+        }
     }
 
     private void GivePlayerQuestAtLocation()
     {
-        foreach (var quest in CurrentLocation.QuestsAvailableHere)
+        foreach (
+            var quest in CurrentLocation.QuestsAvailableHere.Where(quest =>
+                CurrentPlayer.Quests.All(q => q.PlayerQuest.ID != quest.ID)
+            )
+        )
         {
-            if (!CurrentPlayer.Quests.Any(q => q.PlayerQuest.ID == quest.ID))
-            {
-                CurrentPlayer.AddQuest(new QuestStatus(quest));
-                RaiseMessage("");
-                RaiseMessage($"You receive the '{quest.Name}' quest");
-                RaiseMessage(quest.Description);
+            CurrentPlayer.AddQuest(new QuestStatus(quest));
+            RaiseMessage("");
+            RaiseMessage($"You receive the '{quest.Name}' quest");
+            RaiseMessage(quest.Description);
 
-                RaiseMessage("Return with:");
-                foreach (var itemQuantity in quest.ItemsToComplete)
-                {
-                    RaiseMessage(
-                        $"   {itemQuantity.Quantity} {ItemFactory.CreateGameItem(itemQuantity.ItemId).Name}"
-                    );
-                }
-                RaiseMessage("And you will receive:");
-                RaiseMessage($"   {quest.RewardXP} experience points");
-                RaiseMessage($"   {quest.RewardGold} gold");
-                foreach (var itemQuantity in quest.RewardItems)
-                {
-                    RaiseMessage(
-                        $"   {itemQuantity.Quantity} {ItemFactory.CreateGameItem(itemQuantity.ItemId).Name}"
-                    );
-                }
+            RaiseMessage("Return with:");
+            foreach (var itemQuantity in quest.ItemsToComplete)
+            {
+                RaiseMessage(
+                    $"   {itemQuantity.Quantity} {ItemFactory.CreateGameItem(itemQuantity.ItemId).Name}"
+                );
+            }
+            RaiseMessage("And you will receive:");
+            RaiseMessage($"   {quest.RewardXP} experience points");
+            RaiseMessage($"   {quest.RewardGold} gold");
+            foreach (var itemQuantity in quest.RewardItems)
+            {
+                RaiseMessage(
+                    $"   {itemQuantity.Quantity} {ItemFactory.CreateGameItem(itemQuantity.ItemId).Name}"
+                );
             }
         }
     }
@@ -221,21 +254,11 @@ public class GameSession : ObservableObject
             {
                 if (CurrentPlayer.HasAllTheseItems(quest.ItemsToComplete))
                 {
-                    foreach (var itemQuantity in quest.ItemsToComplete)
-                    {
-                        for (var i = 0; i < itemQuantity.Quantity; i++)
-                        {
-                            CurrentPlayer.RemoveItem(
-                                CurrentPlayer.Inventory.First(item =>
-                                    item.ItemID == itemQuantity.ItemId
-                                )
-                            );
-                        }
-                    }
+                    CurrentPlayer.RemoveItems(quest.ItemsToComplete);
                     RaiseMessage("");
                     RaiseMessage($"You completed the '{quest.Name}' quest");
                     CurrentPlayer.AddXp(quest.RewardXP);
-                    RaiseMessage($"You receive {quest.RewardXP} experiene points");
+                    RaiseMessage($"You receive {quest.RewardXP} experience points");
                     CurrentPlayer.AddGold(quest.RewardGold);
                     RaiseMessage($"You receive {quest.RewardGold} gold");
                     foreach (var itemQuantity in quest.RewardItems)

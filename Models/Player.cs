@@ -54,16 +54,6 @@ public class Player : LivingEntity
         }
     }
 
-    public bool HasAllTheseItems(List<ItemQuantity> items)
-    {
-        foreach (var item in items)
-        {
-            if (Inventory.Count(i => i.ItemID == item.ItemId) < item.Quantity)
-                return false;
-        }
-        return true;
-    }
-
     private void SetLevelAndHP()
     {
         int originalLevel = Level;
